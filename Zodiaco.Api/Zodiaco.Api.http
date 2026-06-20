@@ -1,0 +1,5 @@
+@Zodiaco.Api_HostAddress = http://localhost:5187
+
+GET {{Zodiaco.Api_HostAddress}}/health
+Accept: application/json
+###

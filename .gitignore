@@ -1,6 +1,8 @@
 # .NET build outputs
-bin/
-obj/
+**/bin/
+**/obj/
+**/TestResults/
+**/coverage/
 
 # User-specific files
 *.user
@@ -8,9 +10,12 @@ obj/
 *.suo
 *.userosscache
 *.sln.docstates
+*.userprefs
 
 # Visual Studio
 .vs/
+*.VC.db
+*.VC.opendb
 
 # VS Code
 .vscode/
@@ -18,16 +23,21 @@ obj/
 # Rider / JetBrains
 .idea/
 *.sln.iml
+*.DotSettings.user
 
 # Environment files
 .env
 .env.*
 !.env.example
+appsettings.Local.json
 
 # Logs and temp files
+logs/
 *.log
 *.tmp
 *.temp
 *.cache
+*.db
+*.sqlite
 Thumbs.db
 Desktop.ini
