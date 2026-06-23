@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Zodiaco.Api.Common;
 using Zodiaco.Api.Entities;
 
 namespace Zodiaco.Api.Data;
@@ -62,18 +63,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Title).IsRequired().HasMaxLength(200);
             entity.Property(x => x.Brand).IsRequired().HasMaxLength(100);
             entity.Property(x => x.Model).IsRequired().HasMaxLength(100);
-            entity.Property(x => x.Currency).IsRequired().HasMaxLength(3);
+            entity.Property(x => x.Currency).IsRequired().HasMaxLength(3).HasDefaultValue(TruckCurrencyValues.Mxn);
             entity.Property(x => x.Type).IsRequired().HasMaxLength(80);
             entity.Property(x => x.Transmission).HasMaxLength(120);
             entity.Property(x => x.Engine).HasMaxLength(120);
             entity.Property(x => x.Configuration).HasMaxLength(120);
+            entity.Property(x => x.InternalNumber).HasMaxLength(80);
+            entity.Property(x => x.VinOrSerial).HasMaxLength(120);
+            entity.Property(x => x.Color).HasMaxLength(80);
+            entity.Property(x => x.DocumentationStatus).HasMaxLength(120);
+            entity.Property(x => x.MechanicalCondition).HasMaxLength(120);
+            entity.Property(x => x.CommercialObservations).HasMaxLength(2000);
+            entity.Property(x => x.PriceIncludesVat).HasDefaultValue(true);
+            entity.Property(x => x.PaymentOptions).HasMaxLength(80).HasDefaultValue(PaymentOptionValues.CashAndFinancing);
             entity.Property(x => x.LocationState).IsRequired().HasMaxLength(100);
             entity.Property(x => x.LocationCity).HasMaxLength(100);
             entity.Property(x => x.Description).HasMaxLength(3000);
-            entity.Property(x => x.Status).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.Status).IsRequired().HasMaxLength(50).HasDefaultValue(TruckStatusValues.UnderReview);
             entity.HasIndex(x => x.NormalizedSlug).IsUnique();
             entity.HasIndex(x => x.Brand);
             entity.HasIndex(x => x.Type);
+            entity.HasIndex(x => x.Year);
+            entity.HasIndex(x => x.Price);
             entity.HasIndex(x => x.Status);
             entity.HasIndex(x => x.IsFeatured);
             entity.HasIndex(x => x.IsPublished);
@@ -103,9 +114,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Email).HasMaxLength(256);
             entity.Property(x => x.Company).HasMaxLength(150);
             entity.Property(x => x.Source).HasMaxLength(100);
-            entity.Property(x => x.Status).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.LeadType).HasMaxLength(80).HasDefaultValue(LeadTypeValues.General);
+            entity.Property(x => x.Status).IsRequired().HasMaxLength(50).HasDefaultValue(LeadStatusValues.PendingReview);
             entity.Property(x => x.Message).HasMaxLength(2000);
             entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.LeadType);
+            entity.HasIndex(x => x.TruckId);
+
+            entity.HasOne(x => x.Truck)
+                .WithMany(x => x.Leads)
+                .HasForeignKey(x => x.TruckId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<QuoteRequest>(entity =>
@@ -116,12 +135,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Phone).IsRequired().HasMaxLength(30);
             entity.Property(x => x.Email).HasMaxLength(256);
             entity.Property(x => x.Company).HasMaxLength(150);
-            entity.Property(x => x.Status).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.Status).IsRequired().HasMaxLength(50).HasDefaultValue(LeadStatusValues.PendingReview);
             entity.Property(x => x.Message).HasMaxLength(2000);
             entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.TruckId);
 
             entity.HasOne(x => x.Truck)
-                .WithMany()
+                .WithMany(x => x.QuoteRequests)
                 .HasForeignKey(x => x.TruckId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
@@ -138,9 +158,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Model).IsRequired().HasMaxLength(100);
             entity.Property(x => x.TruckType).HasMaxLength(80);
             entity.Property(x => x.LocationState).HasMaxLength(100);
-            entity.Property(x => x.DocumentationStatus).HasMaxLength(100);
+            entity.Property(x => x.DocumentationStatus).HasMaxLength(120);
             entity.Property(x => x.Comments).HasMaxLength(2000);
-            entity.Property(x => x.Status).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.Status).IsRequired().HasMaxLength(50).HasDefaultValue(LeadStatusValues.PendingReview);
             entity.HasIndex(x => x.Status);
             entity.Property(x => x.ExpectedPrice).HasPrecision(18, 2);
         });
@@ -155,7 +175,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(x => x.Company).HasMaxLength(150);
             entity.Property(x => x.TruckType).HasMaxLength(80);
             entity.Property(x => x.Comments).HasMaxLength(2000);
-            entity.Property(x => x.Status).IsRequired().HasMaxLength(50);
+            entity.Property(x => x.Status).IsRequired().HasMaxLength(50).HasDefaultValue(LeadStatusValues.PendingReview);
             entity.HasIndex(x => x.Status);
             entity.Property(x => x.UnitValue).HasPrecision(18, 2);
             entity.Property(x => x.DownPayment).HasPrecision(18, 2);

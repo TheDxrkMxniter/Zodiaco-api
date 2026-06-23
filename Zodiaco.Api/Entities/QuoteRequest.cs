@@ -1,3 +1,5 @@
+using Zodiaco.Api.Common;
+
 namespace Zodiaco.Api.Entities;
 
 public class QuoteRequest
@@ -9,7 +11,7 @@ public class QuoteRequest
     public string? Email { get; set; }
     public string? Company { get; set; }
     public string? Message { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string Status { get; set; } = LeadStatusValues.PendingReview;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

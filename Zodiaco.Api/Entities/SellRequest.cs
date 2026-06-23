@@ -1,3 +1,5 @@
+using Zodiaco.Api.Common;
+
 namespace Zodiaco.Api.Entities;
 
 public class SellRequest
@@ -16,7 +18,7 @@ public class SellRequest
     public decimal? ExpectedPrice { get; set; }
     public string? DocumentationStatus { get; set; }
     public string? Comments { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string Status { get; set; } = LeadStatusValues.PendingReview;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

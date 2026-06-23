@@ -43,8 +43,9 @@ if (shouldSeed)
     }
 
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
-    var insertedCount = await seeder.SeedAsync();
-    Console.WriteLine($"Seed completed. Inserted trucks: {insertedCount}");
+    var seedResult = await seeder.SeedAsync();
+    Console.WriteLine(
+        $"Seed completed. Inserted trucks: {seedResult.InsertedCount}. Updated trucks: {seedResult.UpdatedCount}");
     return;
 }
 

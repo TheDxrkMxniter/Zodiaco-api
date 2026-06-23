@@ -1,3 +1,5 @@
+using Zodiaco.Api.Common;
+
 namespace Zodiaco.Api.Entities;
 
 public class FinancingRequest
@@ -13,7 +15,7 @@ public class FinancingRequest
     public int? TermMonths { get; set; }
     public decimal? EstimatedMonthlyPayment { get; set; }
     public string? Comments { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string Status { get; set; } = LeadStatusValues.PendingReview;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }
