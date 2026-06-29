@@ -26,4 +26,28 @@ public sealed class TrucksController(TrucksService trucksService) : ControllerBa
         var response = await trucksService.GetPublicCatalogAsync(query, cancellationToken);
         return Ok(response);
     }
+
+    /// <summary>
+    /// Gets the public detail of a published truck using its slug.
+    /// </summary>
+    /// <param name="slug">Public truck slug to resolve.</param>
+    /// <param name="cancellationToken">Request cancellation token.</param>
+    /// <returns>The public detail for the requested truck, when available.</returns>
+    [HttpGet("{slug}")]
+    [EndpointSummary("Get public truck detail by slug.")]
+    [EndpointDescription("Returns the public truck detail with technical data, commercial data, images, location, and related trucks.")]
+    [ProducesResponseType(typeof(TruckDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TruckDetailDto>> GetPublicTruckDetail(
+        [FromRoute] string slug,
+        CancellationToken cancellationToken)
+    {
+        var response = await trucksService.GetPublicTruckDetailAsync(slug, cancellationToken);
+        if (response is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(response);
+    }
 }

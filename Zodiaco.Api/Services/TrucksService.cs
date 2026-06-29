@@ -32,9 +32,7 @@ public sealed class TrucksService(AppDbContext dbContext)
         var normalizedLocationCity = NormalizeFilterValue(query.LocationCity);
         var normalizedSearch = NormalizeFilterValue(query.Search);
 
-        IQueryable<Entities.Truck> trucksQuery = dbContext.Trucks
-            .AsNoTracking()
-            .Where(truck => truck.IsPublished && truck.Status != TruckStatusValues.Hidden);
+        IQueryable<Entities.Truck> trucksQuery = BuildPublicTrucksQuery();
 
         if (!string.IsNullOrWhiteSpace(normalizedType))
         {
@@ -150,6 +148,111 @@ public sealed class TrucksService(AppDbContext dbContext)
         };
     }
 
+    public async Task<TruckDetailDto?> GetPublicTruckDetailAsync(
+        string slug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSlug = NormalizeSlug(slug);
+        if (string.IsNullOrWhiteSpace(normalizedSlug))
+        {
+            return null;
+        }
+
+        var truck = await BuildPublicTrucksQuery()
+            .Include(currentTruck => currentTruck.Images)
+            .FirstOrDefaultAsync(currentTruck => currentTruck.NormalizedSlug == normalizedSlug, cancellationToken);
+
+        if (truck is null)
+        {
+            return null;
+        }
+
+        var relatedTrucks = await BuildPublicTrucksQuery()
+            .Where(relatedTruck => relatedTruck.Id != truck.Id)
+            .OrderByDescending(relatedTruck => relatedTruck.Type == truck.Type)
+            .ThenByDescending(relatedTruck => relatedTruck.IsFeatured)
+            .ThenByDescending(relatedTruck => relatedTruck.CreatedAt)
+            .Take(3)
+            .Select(relatedTruck => new RelatedTruckDto
+            {
+                Id = relatedTruck.Id,
+                Slug = relatedTruck.Slug,
+                Title = relatedTruck.Title,
+                Brand = relatedTruck.Brand,
+                Model = relatedTruck.Model,
+                Year = relatedTruck.Year,
+                Price = relatedTruck.Price,
+                Currency = relatedTruck.Currency,
+                Type = relatedTruck.Type,
+                LocationState = relatedTruck.LocationState,
+                LocationCity = relatedTruck.LocationCity,
+                CoverImageUrl = relatedTruck.Images
+                    .OrderByDescending(image => image.IsCover)
+                    .ThenBy(image => image.SortOrder)
+                    .Select(image => image.Url)
+                    .FirstOrDefault(),
+                CoverImageAlt = relatedTruck.Images
+                    .OrderByDescending(image => image.IsCover)
+                    .ThenBy(image => image.SortOrder)
+                    .Select(image => image.Alt)
+                    .FirstOrDefault(),
+                IsFeatured = relatedTruck.IsFeatured
+            })
+            .ToListAsync(cancellationToken);
+
+        return new TruckDetailDto
+        {
+            Id = truck.Id,
+            Slug = truck.Slug,
+            Title = truck.Title,
+            Brand = truck.Brand,
+            Model = truck.Model,
+            Year = truck.Year,
+            Mileage = truck.Mileage,
+            Price = truck.Price,
+            Currency = truck.Currency,
+            PriceIncludesVat = truck.PriceIncludesVat,
+            PaymentOptions = truck.PaymentOptions,
+            Type = truck.Type,
+            Transmission = truck.Transmission,
+            Engine = truck.Engine,
+            Configuration = truck.Configuration,
+            LocationState = truck.LocationState,
+            LocationCity = truck.LocationCity,
+            Description = truck.Description,
+            Status = truck.Status,
+            IsFeatured = truck.IsFeatured,
+            InternalNumber = truck.InternalNumber,
+            VinOrSerial = truck.VinOrSerial,
+            Color = truck.Color,
+            DocumentationStatus = truck.DocumentationStatus,
+            MechanicalCondition = truck.MechanicalCondition,
+            CommercialObservations = truck.CommercialObservations,
+            Images = truck.Images
+                .OrderBy(image => image.SortOrder)
+                .ThenByDescending(image => image.IsCover)
+                .Select(image => new TruckImageDto
+                {
+                    Id = image.Id,
+                    Url = image.Url,
+                    AltText = image.Alt,
+                    SortOrder = image.SortOrder,
+                    IsCover = image.IsCover
+                })
+                .ToList(),
+            RelatedTrucks = relatedTrucks,
+            CreatedAt = truck.CreatedAt,
+            UpdatedAt = truck.UpdatedAt
+        };
+    }
+
+    private IQueryable<Entities.Truck> BuildPublicTrucksQuery()
+    {
+        return dbContext.Trucks
+            .AsNoTracking()
+            .Where(truck => truck.IsPublished && truck.Status != TruckStatusValues.Hidden);
+    }
+
     private static int NormalizePageSize(int? pageSize)
     {
         if (!pageSize.HasValue)
@@ -184,6 +287,13 @@ public sealed class TrucksService(AppDbContext dbContext)
         }
 
         return builder.ToString().Normalize(NormalizationForm.FormC);
+    }
+
+    private static string NormalizeSlug(string slug)
+    {
+        return string.IsNullOrWhiteSpace(slug)
+            ? string.Empty
+            : slug.Trim().ToLowerInvariant();
     }
 
     private static string BuildExactLikePattern(string value)
