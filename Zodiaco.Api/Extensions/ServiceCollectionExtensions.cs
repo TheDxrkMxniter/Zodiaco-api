@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Zodiaco.Api.Common;
 using Zodiaco.Api.Data;
+using System.Reflection;
 
 namespace Zodiaco.Api.Extensions;
 
@@ -31,6 +32,13 @@ public static class ServiceCollectionExtensions
                 Version = "v1",
                 Description = "Backend base para Universal Zodiaco."
             });
+
+            var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFileName);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+            }
         });
 
         return services;
