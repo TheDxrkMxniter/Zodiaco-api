@@ -6,6 +6,7 @@ public static class DependencyInjection
     {
         services.AddScoped<LeadsService>();
         services.AddScoped<QuoteRequestsService>();
+        services.AddScoped<SellRequestsService>();
         services.AddScoped<TrucksService>();
 
         return services;
